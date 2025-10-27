@@ -143,7 +143,11 @@ function copyCoordinates() {
 
 async function saveToLog(location) {
     try {
-        // Prepare data to send
+        // Always save to localStorage first (primary storage)
+        saveToLocalStorage(location);
+        console.log('✅ Location saved to localStorage');
+        
+        // Try to send to server as backup
         const logEntry = {
             latitude: location.latitude,
             longitude: location.longitude,
@@ -153,31 +157,27 @@ async function saveToLog(location) {
             platform: navigator.platform
         };
         
-        // Send to server (Netlify Function)
-        const response = await fetch('/.netlify/functions/save-location', {
+        // Send to server (Netlify Function) - non-blocking
+        fetch('/.netlify/functions/save-location', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(logEntry)
+        }).then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Server save failed');
+        }).then(result => {
+            console.log('✅ Also saved to server:', result);
+        }).catch(error => {
+            console.warn('⚠️ Server save failed (data still in localStorage):', error);
         });
-
-        if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Location saved to server:', result);
-            
-            // Also save to localStorage as backup
-            saveToLocalStorage(logEntry);
-        } else {
-            console.error('❌ Failed to save to server');
-            // Fallback to localStorage only
-            saveToLocalStorage(logEntry);
-        }
         
     } catch (error) {
-        console.error('Failed to save log to server:', error);
-        // Fallback to localStorage only
-        saveToLocalStorage(location);
+        console.error('Failed to save log:', error);
+        // LocalStorage already saved above
     }
 }
 

@@ -24,21 +24,28 @@ clearBtn.addEventListener('click', clearLogs);
 
 async function loadLogs() {
     try {
-        // Try to load from server first
-        const response = await fetch('/.netlify/functions/save-location', {
-            method: 'GET'
-        });
-
-        let logs = [];
+        // Primary: Load from localStorage (most reliable)
+        let logs = JSON.parse(localStorage.getItem('locationLogs') || '[]');
+        console.log('✅ Loaded', logs.length, 'logs from localStorage');
         
-        if (response.ok) {
-            const result = await response.json();
-            logs = result.data || [];
-            console.log('✅ Loaded logs from server:', logs.length);
-        } else {
-            // Fallback to localStorage
-            console.log('⚠️ Loading from localStorage (fallback)');
-            logs = JSON.parse(localStorage.getItem('locationLogs') || '[]');
+        // Try to also load from server and merge (optional)
+        try {
+            const response = await fetch('/.netlify/functions/save-location', {
+                method: 'GET'
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                const serverLogs = result.data || [];
+                console.log('✅ Also loaded', serverLogs.length, 'logs from server');
+                
+                // Merge with localStorage (dedupe by timestamp)
+                const allLogs = [...logs, ...serverLogs];
+                const uniqueLogs = Array.from(new Map(allLogs.map(log => [log.timestamp || log.id, log])).values());
+                logs = uniqueLogs.sort((a, b) => (b.timestamp || b.id) - (a.timestamp || a.id));
+            }
+        } catch (serverError) {
+            console.warn('⚠️ Server fetch failed, using localStorage only:', serverError.message);
         }
         
         if (logs.length === 0) {
@@ -54,7 +61,7 @@ async function loadLogs() {
         
         // Latest update
         if (logs[0]) {
-            const latestDate = new Date(logs[0].timestamp);
+            const latestDate = new Date(logs[0].timestamp || logs[0].id);
             latestUpdateEl.textContent = formatRelativeTime(latestDate);
         }
 
@@ -63,25 +70,8 @@ async function loadLogs() {
 
     } catch (error) {
         console.error('Failed to load logs:', error);
-        // Fallback to localStorage
-        try {
-            const logs = JSON.parse(localStorage.getItem('locationLogs') || '[]');
-            if (logs.length > 0) {
-                emptyState.classList.add('hidden');
-                totalLogsEl.textContent = logs.length;
-                if (logs[0]) {
-                    const latestDate = new Date(logs[0].timestamp);
-                    latestUpdateEl.textContent = formatRelativeTime(latestDate);
-                }
-                logsContainer.innerHTML = logs.map((log, index) => createLogCard(log, index)).join('');
-            } else {
-                emptyState.classList.remove('hidden');
-                logsContainer.innerHTML = '';
-            }
-        } catch (e) {
-            emptyState.classList.remove('hidden');
-            logsContainer.innerHTML = '';
-        }
+        emptyState.classList.remove('hidden');
+        logsContainer.innerHTML = '';
     }
 }
 
