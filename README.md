@@ -147,20 +147,22 @@ Website ini support di semua browser modern yang mendukung Geolocation API:
 
 ## 🔐 Privacy & Security
 
-### ✨ Server-Side Storage (Production)
+### ✨ Server-Side Storage (Production) - SHARED ACROSS ALL USERS!
 Ketika di-deploy ke Netlify:
 - ✅ Data lokasi **disimpan PERMANENT** di Netlify Blobs (persistent storage)
 - ✅ Data **TIDAK AKAN HILANG** - tersimpan sampai **dihapus manual** oleh user
-- ✅ Bisa diakses dari **browser/device mana saja**
+- ✅ **SHARED STORAGE** - Semua orang bisa lihat log dari semua pengunjung!
+- ✅ Bisa diakses dari **browser/device mana saja** - data sama untuk semua
 - ✅ Data tetap ada meskipun clear browser cache atau redeploy
 - ✅ HTTPS otomatis dari Netlify untuk keamanan
 - ✅ Maximum 1000 log entries (otomatis hapus yang paling lama)
 - ✅ **100% Reliable** - tidak ada data loss seperti storage temporary
+- ✅ **Real-time visibility** - Log baru langsung terlihat di semua device
 
-### 💾 LocalStorage Backup
+### 💾 LocalStorage Backup (Fallback Only)
 - Data juga tersimpan di localStorage sebagai backup
-- Fallback jika server tidak available
-- Sync otomatis antara server dan local
+- Hanya digunakan jika server tidak available
+- Server adalah primary storage - semua user lihat data yang sama!
 
 ### 🔒 Security Warning
 - ⚠️ **Tidak ada authentication** (untuk demo/personal use)

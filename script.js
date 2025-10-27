@@ -143,11 +143,6 @@ function copyCoordinates() {
 
 async function saveToLog(location) {
     try {
-        // Always save to localStorage first (primary storage)
-        saveToLocalStorage(location);
-        console.log('✅ Location saved to localStorage');
-        
-        // Try to send to server as backup
         const logEntry = {
             latitude: location.latitude,
             longitude: location.longitude,
@@ -157,27 +152,42 @@ async function saveToLog(location) {
             platform: navigator.platform
         };
         
-        // Send to server (Netlify Function) - non-blocking
-        fetch('/.netlify/functions/save-location', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(logEntry)
-        }).then(response => {
+        // PRIMARY: Save to SERVER (shared storage for all users!)
+        try {
+            const response = await fetch('/.netlify/functions/save-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(logEntry)
+            });
+
             if (response.ok) {
-                return response.json();
+                const result = await response.json();
+                console.log('✅ Location saved to SERVER (shared storage):', result);
+                
+                // BACKUP: Also save to localStorage as fallback
+                saveToLocalStorage(location);
+                console.log('💾 Also backed up to localStorage');
+                return;
+            } else {
+                throw new Error(`Server returned ${response.status}`);
             }
-            throw new Error('Server save failed');
-        }).then(result => {
-            console.log('✅ Also saved to server:', result);
-        }).catch(error => {
-            console.warn('⚠️ Server save failed (data still in localStorage):', error);
-        });
+        } catch (error) {
+            console.warn('⚠️ Server save failed:', error);
+            // FALLBACK: Save to localStorage only
+            saveToLocalStorage(location);
+            console.log('📱 Fallback: Saved to localStorage only');
+        }
         
     } catch (error) {
         console.error('Failed to save log:', error);
-        // LocalStorage already saved above
+        // Last resort - try localStorage
+        try {
+            saveToLocalStorage(location);
+        } catch (e) {
+            console.error('Complete save failure:', e);
+        }
     }
 }
 

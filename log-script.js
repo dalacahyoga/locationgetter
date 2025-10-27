@@ -24,11 +24,10 @@ clearBtn.addEventListener('click', clearLogs);
 
 async function loadLogs() {
     try {
-        // Primary: Load from localStorage (most reliable)
-        let logs = JSON.parse(localStorage.getItem('locationLogs') || '[]');
-        console.log('✅ Loaded', logs.length, 'logs from localStorage');
+        // PRIMARY: Load from SERVER (shared across all users & devices!)
+        let logs = [];
+        let serverSuccess = false;
         
-        // Try to also load from server and merge (optional)
         try {
             const response = await fetch('/.netlify/functions/save-location', {
                 method: 'GET'
@@ -36,16 +35,21 @@ async function loadLogs() {
 
             if (response.ok) {
                 const result = await response.json();
-                const serverLogs = result.data || [];
-                console.log('✅ Also loaded', serverLogs.length, 'logs from server');
-                
-                // Merge with localStorage (dedupe by timestamp)
-                const allLogs = [...logs, ...serverLogs];
-                const uniqueLogs = Array.from(new Map(allLogs.map(log => [log.timestamp || log.id, log])).values());
-                logs = uniqueLogs.sort((a, b) => (b.timestamp || b.id) - (a.timestamp || a.id));
+                logs = result.data || [];
+                serverSuccess = true;
+                console.log('✅ Loaded', logs.length, 'logs from SERVER (shared storage)');
             }
         } catch (serverError) {
-            console.warn('⚠️ Server fetch failed, using localStorage only:', serverError.message);
+            console.warn('⚠️ Server fetch failed:', serverError.message);
+        }
+        
+        // FALLBACK: If server fails, use localStorage as backup
+        if (!serverSuccess || logs.length === 0) {
+            const localLogs = JSON.parse(localStorage.getItem('locationLogs') || '[]');
+            if (localLogs.length > 0) {
+                logs = localLogs;
+                console.log('📱 Fallback: Loaded', logs.length, 'logs from localStorage');
+            }
         }
         
         if (logs.length === 0) {
