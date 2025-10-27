@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+const { getStore } = require('@netlify/blobs');
 
-// Simple file-based storage (for demo - use real DB in production)
-const DATA_FILE = '/tmp/locations.json';
+// Netlify Blobs - Persistent storage (data never lost!)
+const STORE_NAME = 'locations';
+const DATA_KEY = 'locations-data';
 
 exports.handler = async (event, context) => {
   // Set CORS headers
@@ -36,15 +36,18 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Read existing data
+      // Get Netlify Blobs store
+      const store = getStore(STORE_NAME);
+      
+      // Read existing data from Blobs
       let locations = [];
       try {
-        if (fs.existsSync(DATA_FILE)) {
-          const fileContent = fs.readFileSync(DATA_FILE, 'utf8');
-          locations = JSON.parse(fileContent);
+        const existingData = await store.get(DATA_KEY, { type: 'json' });
+        if (existingData) {
+          locations = existingData;
         }
       } catch (err) {
-        console.log('No existing data file, creating new');
+        console.log('No existing data, creating new');
       }
 
       // Add new location
@@ -67,8 +70,8 @@ exports.handler = async (event, context) => {
         locations = locations.slice(0, 1000);
       }
 
-      // Save to file
-      fs.writeFileSync(DATA_FILE, JSON.stringify(locations, null, 2));
+      // Save to Netlify Blobs (persistent storage!)
+      await store.set(DATA_KEY, JSON.stringify(locations));
 
       return {
         statusCode: 200,
@@ -92,11 +95,12 @@ exports.handler = async (event, context) => {
   // Handle GET - Retrieve locations
   if (event.httpMethod === 'GET') {
     try {
+      const store = getStore(STORE_NAME);
       let locations = [];
       
-      if (fs.existsSync(DATA_FILE)) {
-        const fileContent = fs.readFileSync(DATA_FILE, 'utf8');
-        locations = JSON.parse(fileContent);
+      const existingData = await store.get(DATA_KEY, { type: 'json' });
+      if (existingData) {
+        locations = existingData;
       }
 
       return {

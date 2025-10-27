@@ -15,7 +15,9 @@
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "@netlify/blobs": "^7.0.0"
+  },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
   }

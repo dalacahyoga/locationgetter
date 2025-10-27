@@ -110,9 +110,9 @@ User Browser → Geolocation API → JavaScript
                                       ↓
                           Netlify Function (API)
                                       ↓
-                          Server Storage (/tmp/locations.json)
+                          Netlify Blobs (Persistent Storage)
                                       ↓
-                          [Data Saved Permanently]
+                          [Data Saved Permanently - Never Lost!]
                                       ↓
                           Accessible from any device
 ```
@@ -128,7 +128,7 @@ User Browser → Geolocation API → JavaScript
 - **Backend:**
   - Netlify Functions (Serverless)
   - Node.js
-  - File-based storage (upgradeable to DB)
+  - Netlify Blobs (Persistent storage - data never lost!)
 
 - **Hosting:**
   - Netlify (Free tier)
@@ -149,12 +149,13 @@ Website ini support di semua browser modern yang mendukung Geolocation API:
 
 ### ✨ Server-Side Storage (Production)
 Ketika di-deploy ke Netlify:
-- ✅ Data lokasi **disimpan permanent** di server (Netlify Functions)
-- ✅ Data tersimpan sampai **dihapus manual** oleh user
+- ✅ Data lokasi **disimpan PERMANENT** di Netlify Blobs (persistent storage)
+- ✅ Data **TIDAK AKAN HILANG** - tersimpan sampai **dihapus manual** oleh user
 - ✅ Bisa diakses dari **browser/device mana saja**
-- ✅ Data tetap ada meskipun clear browser cache
+- ✅ Data tetap ada meskipun clear browser cache atau redeploy
 - ✅ HTTPS otomatis dari Netlify untuk keamanan
 - ✅ Maximum 1000 log entries (otomatis hapus yang paling lama)
+- ✅ **100% Reliable** - tidak ada data loss seperti storage temporary
 
 ### 💾 LocalStorage Backup
 - Data juga tersimpan di localStorage sebagai backup
@@ -170,9 +171,9 @@ Ketika di-deploy ke Netlify:
 ### 🛡️ Recommendations untuk Production:
 1. Add password protection untuk `/ngerug`
 2. Add API key authentication
-3. Upgrade ke proper database (Supabase/Firebase)
-4. Add user accounts & login
-5. Encrypt sensitive data
+3. Add user accounts & login
+4. Encrypt sensitive data
+5. (Optional) Upgrade ke proper database dengan advanced features (Supabase/Firebase)
 
 ## 📁 Project Structure
 

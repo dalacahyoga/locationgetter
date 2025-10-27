@@ -1,6 +1,8 @@
-const fs = require('fs');
+const { getStore } = require('@netlify/blobs');
 
-const DATA_FILE = '/tmp/locations.json';
+// Netlify Blobs - Persistent storage
+const STORE_NAME = 'locations';
+const DATA_KEY = 'locations-data';
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -19,16 +21,19 @@ exports.handler = async (event, context) => {
       const data = JSON.parse(event.body);
       const { id, clearAll } = data;
 
-      // Read existing data
+      // Get Netlify Blobs store
+      const store = getStore(STORE_NAME);
+      
+      // Read existing data from Blobs
       let locations = [];
-      if (fs.existsSync(DATA_FILE)) {
-        const fileContent = fs.readFileSync(DATA_FILE, 'utf8');
-        locations = JSON.parse(fileContent);
+      const existingData = await store.get(DATA_KEY, { type: 'json' });
+      if (existingData) {
+        locations = existingData;
       }
 
       if (clearAll) {
         // Clear all locations
-        fs.writeFileSync(DATA_FILE, JSON.stringify([], null, 2));
+        await store.set(DATA_KEY, JSON.stringify([]));
         return {
           statusCode: 200,
           headers,
@@ -37,7 +42,7 @@ exports.handler = async (event, context) => {
       } else if (id) {
         // Delete specific location
         locations = locations.filter(loc => loc.id !== id);
-        fs.writeFileSync(DATA_FILE, JSON.stringify(locations, null, 2));
+        await store.set(DATA_KEY, JSON.stringify(locations));
         return {
           statusCode: 200,
           headers,
