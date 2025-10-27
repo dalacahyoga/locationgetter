@@ -294,9 +294,3 @@ async function clearLogs() {
     }
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
