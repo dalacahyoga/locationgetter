@@ -4,8 +4,8 @@
 
 # Dependencies
 node_modules/
-package-lock.json
 yarn.lock
+# NOTE: package-lock.json NOT ignored - needed for Netlify to install deps correctly!
 
 # OS
 .DS_Store
