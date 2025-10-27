@@ -281,6 +281,28 @@ body {
     color: var(--text-secondary);
 }
 
+.log-map {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--bg-light);
+}
+
+.log-map iframe {
+    display: block;
+    width: 100%;
+    min-height: 250px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.log-map:hover iframe {
+    box-shadow: var(--shadow-md);
+}
+
 .empty-state {
     text-align: center;
     padding: 64px 32px;

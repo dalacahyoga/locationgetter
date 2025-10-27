@@ -146,6 +146,19 @@ function createLogCard(log, index) {
             <div class="log-device">
                 <strong>Device:</strong> ${deviceInfo}
             </div>
+            
+            <div class="log-map">
+                <iframe
+                    width="100%"
+                    height="250"
+                    frameborder="0"
+                    style="border:0; border-radius: 8px;"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    src="https://maps.google.com/maps?q=${log.latitude},${log.longitude}&hl=id&z=15&output=embed"
+                    allowfullscreen
+                    loading="lazy">
+                </iframe>
+            </div>
         </div>
     `;
 }
