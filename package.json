@@ -1,0 +1,23 @@
+{
+  "name": "location-getter",
+  "version": "1.0.0",
+  "description": "Website untuk mendapatkan dan menyimpan lokasi pengguna",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build needed for static site'"
+  },
+  "keywords": [
+    "geolocation",
+    "location",
+    "gps",
+    "tracking"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
+
