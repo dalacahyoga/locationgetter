@@ -12,6 +12,8 @@ exports.handler = async (event, context) => {
     'Content-Type': 'application/json'
   };
 
+  console.log('Delete function invoked:', event.httpMethod);
+
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
@@ -21,19 +23,27 @@ exports.handler = async (event, context) => {
       const data = JSON.parse(event.body);
       const { id, clearAll } = data;
 
-      // Get Netlify Blobs store
-      const store = getStore(STORE_NAME);
+      // Get Netlify Blobs store (with context)
+      const store = getStore({
+        name: STORE_NAME,
+        siteID: context.site?.id || process.env.SITE_ID
+      });
+      
+      console.log('Reading from Blobs for delete operation...');
       
       // Read existing data from Blobs
       let locations = [];
       const existingData = await store.get(DATA_KEY, { type: 'json' });
       if (existingData) {
         locations = existingData;
+        console.log('Current data:', locations.length, 'locations');
       }
 
       if (clearAll) {
         // Clear all locations
+        console.log('Clearing all locations...');
         await store.set(DATA_KEY, JSON.stringify([]));
+        console.log('✅ All locations cleared from Blobs');
         return {
           statusCode: 200,
           headers,
@@ -41,8 +51,14 @@ exports.handler = async (event, context) => {
         };
       } else if (id) {
         // Delete specific location
+        const beforeCount = locations.length;
         locations = locations.filter(loc => loc.id !== id);
+        const afterCount = locations.length;
+        
+        console.log('Deleting location ID:', id);
         await store.set(DATA_KEY, JSON.stringify(locations));
+        console.log('✅ Deleted. Before:', beforeCount, 'After:', afterCount);
+        
         return {
           statusCode: 200,
           headers,
@@ -56,11 +72,14 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ error: 'No id or clearAll specified' })
       };
     } catch (error) {
-      console.error('Error deleting location:', error);
+      console.error('❌ Error deleting location:', error);
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Failed to delete location' })
+        body: JSON.stringify({ 
+          error: 'Failed to delete location',
+          message: error.message 
+        })
       };
     }
   }
